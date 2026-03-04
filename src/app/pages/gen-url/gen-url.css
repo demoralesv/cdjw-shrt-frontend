@@ -1,0 +1,6 @@
+.wrap { max-width: 720px; margin: 40px auto; font-family: Arial, sans-serif; }
+.card { border: 1px solid #ddd; padding: 16px; border-radius: 10px; }
+input { width: 100%; padding: 10px; margin: 8px 0 12px; }
+button { padding: 10px 14px; cursor: pointer; }
+.error { color: #b00020; }
+.result { margin-top: 12px; }

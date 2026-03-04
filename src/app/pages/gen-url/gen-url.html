@@ -1,0 +1,20 @@
+<h1 class="pageTitle">Acortador de URLs</h1>
+
+<div class="card">
+  <div class="field">
+    <label>URL original</label>
+    <input [(ngModel)]="originalUrl" placeholder="https://..." />
+  </div>
+
+  <div class="row">
+    <button class="btn primary" (click)="create()" [disabled]="loading">
+      {{ loading ? 'Creando...' : 'Crear' }}
+    </button>
+  </div>
+
+  <div class="notice error" *ngIf="error">{{ error }}</div>
+
+  <div class="notice" *ngIf="result">
+    <div><b>Acortado: </b> <a [href]="result.shortUrl" target="_blank">{{ result.shortUrl }}</a></div>
+  </div>
+</div>
