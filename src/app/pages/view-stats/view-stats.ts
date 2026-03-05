@@ -1,6 +1,7 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UrlService, UrlDoc, UrlStats } from '../../services/url';
+import { Chart } from 'chart.js/auto';
 
 @Component({
   selector: 'app-view-stats',
@@ -18,6 +19,7 @@ export class ViewStats {
 
   loadingStats = false;
   error = '';
+  chart: any;
 
   constructor(private urlService: UrlService, private cdr: ChangeDetectorRef) {}
 
@@ -58,6 +60,11 @@ export class ViewStats {
       next: (s) => {
         this.stats = s;
         this.loadingStats = false;
+	
+	setTimeout(() => {
+	   this.createChart(s.dailyFrequency);
+	});
+
         this.cdr.detectChanges();
       },
       error: (e: any) => {
@@ -68,7 +75,7 @@ export class ViewStats {
     });
   }
 
-  // Helpers UI
+  // Helpers en la interfaz
   formatDate(iso: string) {
     const d = new Date(iso);
     return isNaN(d.getTime()) ? iso : d.toLocaleString();
@@ -79,7 +86,7 @@ export class ViewStats {
     return Math.max(...this.stats.dailyFrequency.map(x => x.count), 1);
   }
 
-  // bandera simple (emoji). Funciona si country viene como nombre en inglés (“Costa Rica”)
+  // banderas para los paises
   flagEmoji(countryName: string): string {
     const map: Record<string, string> = {
 	'AF': '🇦🇫',
@@ -284,9 +291,45 @@ export class ViewStats {
 	'VN': '🇻🇳',
 	'YE': '🇾🇪',
 	'ZM': '🇿🇲',
-	'ZW': '🇿🇼', 
-      	'Unknown': '🏳️',
+	'ZW': '🇿🇼',
     };
     return map[countryName] || '🏳️';
   }
+
+  createChart(data: any[]) {
+
+    const labels = data.map(d => d.date);
+    const counts = data.map(d => d.count);
+    const ctx = document.getElementById('dailyChart') as HTMLCanvasElement;
+
+    if (!ctx) return;
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    this.chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Accesos por día',
+          data: counts,
+          backgroundColor: '#facc15',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
 }

@@ -55,6 +55,8 @@
       <div class="section">
         <h3>Frecuencia por día</h3>
 
+	<canvas id="dailyChart"></canvas>
+
         <div class="chart" *ngIf="stats.dailyFrequency.length; else noDaily">
           <div class="barRow" *ngFor="let d of stats.dailyFrequency">
             <div class="date">{{ d.date }}</div>
