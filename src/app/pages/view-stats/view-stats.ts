@@ -1,9 +1,292 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UrlService, UrlDoc, UrlStats } from '../../services/url';
 
 @Component({
   selector: 'app-view-stats',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './view-stats.html',
-  styleUrl: './view-stats.css',
+  styleUrls: ['./view-stats.css'],
 })
-export class ViewStats {}
+export class ViewStats {
+  urls: UrlDoc[] = [];
+  loadingList = false;
+
+  selected: UrlDoc | null = null;
+  stats: UrlStats | null = null;
+
+  loadingStats = false;
+  error = '';
+
+  constructor(private urlService: UrlService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.loadList();
+  }
+
+  loadList() {
+    this.loadingList = true;
+    this.error = '';
+    this.cdr.detectChanges();
+
+    this.urlService.list().subscribe({
+      next: (items) => {
+        // por si acaso, orden alfabético en frontend también
+        this.urls = (items || []).slice().sort((a, b) =>
+          (a.originalUrl || '').localeCompare(b.originalUrl || '')
+        );
+        this.loadingList = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo cargar la lista de URLs.';
+        this.loadingList = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  view(u: UrlDoc) {
+    this.selected = u;
+    this.stats = null;
+    this.error = '';
+    this.loadingStats = true;
+    this.cdr.detectChanges();
+
+    this.urlService.stats(u.code).subscribe({
+      next: (s) => {
+        this.stats = s;
+        this.loadingStats = false;
+        this.cdr.detectChanges();
+      },
+      error: (e: any) => {
+        this.error = e?.error?.error || 'No se pudieron cargar las estadísticas.';
+        this.loadingStats = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // Helpers UI
+  formatDate(iso: string) {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toLocaleString();
+  }
+
+  maxDailyCount(): number {
+    if (!this.stats?.dailyFrequency?.length) return 1;
+    return Math.max(...this.stats.dailyFrequency.map(x => x.count), 1);
+  }
+
+  // bandera simple (emoji). Funciona si country viene como nombre en inglés (“Costa Rica”)
+  flagEmoji(countryName: string): string {
+    const map: Record<string, string> = {
+	'AF': '🇦🇫',
+	'AL': '🇦🇱',
+	'DZ': '🇩🇿',
+	'AS': '🇦🇸',
+	'AD': '🇦🇩',
+	'AO': '🇦🇴',
+	'AI': '🇦🇮',
+	'AQ': '🇦🇶',
+	'AG': '🇦🇬',
+	'AR': '🇦🇷',
+	'AM': '🇦🇲',
+	'AW': '🇦🇼',
+	'AU': '🇦🇺',
+	'AT': '🇦🇹',
+	'AZ': '🇦🇿',
+	'BS': '🇧🇸',
+	'BH': '🇧🇭',
+	'BD': '🇧🇩',
+	'BB': '🇧🇧',
+	'BY': '🇧🇾',
+	'BE': '🇧🇪',
+	'BZ': '🇧🇿',
+	'BJ': '🇧🇯',
+	'BM': '🇧🇲',
+	'BT': '🇧🇹',
+	'BO': '🇧🇴',
+	'BA': '🇧🇦',
+	'BW': '🇧🇼',
+	'BR': '🇧🇷',
+	'BN': '🇧🇳',
+	'BG': '🇧🇬',
+	'BF': '🇧🇫',
+	'BI': '🇧🇮',
+	'KH': '🇰🇭',
+	'CM': '🇨🇲',
+	'CA': '🇨🇦',
+	'CV': '🇨🇻',
+	'KY': '🇰🇾',
+	'CF': '🇨🇫',
+	'TD': '🇹🇩',
+	'CL': '🇨🇱',
+	'CN': '🇨🇳',
+	'CO': '🇨🇴',
+	'KM': '🇰🇲',
+	'CG': '🇨🇬',
+	'CD': '🇨🇩',
+	'CR': '🇨🇷',
+	'CI': '🇨🇮',
+	'HR': '🇭🇷',
+	'CU': '🇨🇺',
+	'CY': '🇨🇾',
+	'CZ': '🇨🇿',
+	'DK': '🇩🇰',
+	'DJ': '🇩🇯',
+	'DM': '🇩🇲',
+	'DO': '🇩🇴',
+	'EC': '🇪🇨',
+	'EG': '🇪🇬',
+	'SV': '🇸🇻',
+	'GQ': '🇬🇶',
+	'ER': '🇪🇷',
+	'EE': '🇪🇪',
+	'ET': '🇪🇹',
+	'FJ': '🇫🇯',
+	'FI': '🇫🇮',
+	'FR': '🇫🇷',
+	'GA': '🇬🇦',
+	'GM': '🇬🇲',
+	'GE': '🇬🇪',
+	'DE': '🇩🇪',
+	'GH': '🇬🇭',
+	'GI': '🇬🇮',
+	'GR': '🇬🇷',
+	'GL': '🇬🇱',
+	'GD': '🇬🇩',
+	'GU': '🇬🇺',
+	'GT': '🇬🇹',
+	'GN': '🇬🇳',
+	'GW': '🇬🇼',
+	'GY': '🇬🇾',
+	'HT': '🇭🇹',
+	'HN': '🇭🇳',
+	'HK': '🇭🇰',
+	'HU': '🇭🇺',
+	'IS': '🇮🇸',
+	'IN': '🇮🇳',
+	'ID': '🇮🇩',
+	'IR': '🇮🇷',
+	'IQ': '🇮🇶',
+	'IE': '🇮🇪',
+	'IL': '🇮🇱',
+	'IT': '🇮🇹',
+	'JM': '🇯🇲',
+	'JP': '🇯🇵',
+	'JO': '🇯🇴',
+	'KZ': '🇰🇿',
+	'KE': '🇰🇪',
+	'KI': '🇰🇮',
+	'KP': '🇰🇵',
+	'KR': '🇰🇷',
+	'KW': '🇰🇼',
+	'KG': '🇰🇬',
+	'LA': '🇱🇦',
+	'LV': '🇱🇻',
+	'LB': '🇱🇧',
+	'LS': '🇱🇸',
+	'LR': '🇱🇷',
+	'LY': '🇱🇾',
+	'LI': '🇱🇮',
+	'LT': '🇱🇹',
+	'LU': '🇱🇺',
+	'MO': '🇲🇴',
+	'MK': '🇲🇰',
+	'MG': '🇲🇬',
+	'MW': '🇲🇼',
+	'MY': '🇲🇾',
+	'MV': '🇲🇻',
+	'ML': '🇲🇱',
+	'MT': '🇲🇹',
+	'MH': '🇲🇭',
+	'MR': '🇲🇷',
+	'MU': '🇲🇺',
+	'MX': '🇲🇽',
+	'FM': '🇫🇲',
+	'MD': '🇲🇩',
+	'MC': '🇲🇨',
+	'MN': '🇲🇳',
+	'ME': '🇲🇪',
+	'MA': '🇲🇦',
+	'MZ': '🇲🇿',
+	'MM': '🇲🇲',
+	'NA': '🇳🇦',
+	'NR': '🇳🇷',
+	'NP': '🇳🇵',
+	'NL': '🇳🇱',
+	'NZ': '🇳🇿',
+	'NI': '🇳🇮',
+	'NE': '🇳🇪',
+	'NG': '🇳🇬',
+	'NO': '🇳🇴',
+	'OM': '🇴🇲',
+	'PK': '🇵🇰',
+	'PW': '🇵🇼',
+	'PA': '🇵🇦',
+	'PG': '🇵🇬',
+	'PY': '🇵🇾',
+	'PE': '🇵🇪',
+	'PH': '🇵🇭',
+	'PL': '🇵🇱',
+	'PT': '🇵🇹',
+	'QA': '🇶🇦',
+	'RO': '🇷🇴',
+	'RU': '🇷🇺',
+	'RW': '🇷🇼',
+	'KN': '🇰🇳',
+	'LC': '🇱🇨',
+	'VC': '🇻🇨',
+	'WS': '🇼🇸',
+	'SM': '🇸🇲',
+	'ST': '🇸🇹',
+	'SA': '🇸🇦',
+	'SN': '🇸🇳',
+	'RS': '🇷🇸',
+	'SC': '🇸🇨',
+	'SL': '🇸🇱',
+	'SG': '🇸🇬',
+	'SK': '🇸🇰',
+	'SI': '🇸🇮',
+	'SB': '🇸🇧',
+	'SO': '🇸🇴',
+	'ZA': '🇿🇦',
+	'ES': '🇪🇸',
+	'LK': '🇱🇰',
+	'SD': '🇸🇩',
+	'SR': '🇸🇷',
+	'SE': '🇸🇪',
+	'CH': '🇨🇭',
+	'SY': '🇸🇾',
+	'TW': '🇹🇼',
+	'TJ': '🇹🇯',
+	'TZ': '🇹🇿',
+	'TH': '🇹🇭',
+	'TL': '🇹🇱',
+	'TG': '🇹🇬',
+	'TO': '🇹🇴',
+	'TT': '🇹🇹',
+	'TN': '🇹🇳',
+	'TR': '🇹🇷',
+	'TM': '🇹🇲',
+	'UG': '🇺🇬',
+	'UA': '🇺🇦',
+	'AE': '🇦🇪',
+	'GB': '🇬🇧',
+	'US': '🇺🇸',
+	'UY': '🇺🇾',
+	'UZ': '🇺🇿',
+	'VU': '🇻🇺',
+	'VA': '🇻🇦',
+	'VE': '🇻🇪',
+	'VN': '🇻🇳',
+	'YE': '🇾🇪',
+	'ZM': '🇿🇲',
+	'ZW': '🇿🇼', 
+      	'Unknown': '🏳️',
+    };
+    return map[countryName] || '🏳️';
+  }
+}

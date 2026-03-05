@@ -1,1 +1,74 @@
-<p>view-stats works!</p>
+<h1 class="pageTitle">Estadísticas</h1>
+
+<div class="grid2">
+  <!-- Lista -->
+  <div class="card">
+    <h2 class="cardTitle">URLs guardadas</h2>
+
+    <div class="notice" *ngIf="loadingList">Cargando lista…</div>
+    <div class="notice error" *ngIf="error">{{ error }}</div>
+
+    <div class="list" *ngIf="!loadingList && urls.length">
+      <div class="rowItem" *ngFor="let u of urls">
+        <div class="urlText" title="{{u.originalUrl}}">{{ u.originalUrl }}</div>
+        <button (click)="view(u)" [disabled]="loadingStats && selected?.code === u.code">
+          {{ (loadingStats && selected?.code === u.code) ? 'Cargando…' : 'Ver' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="notice" *ngIf="!loadingList && !urls.length">
+      No hay URLs todavía.
+    </div>
+  </div>
+
+  <!-- Panel stats -->
+  <div class="card">
+    <h2 class="cardTitle">Detalle</h2>
+
+    <div class="notice" *ngIf="!selected">Elegí una URL y presioná <b>Ver</b>.</div>
+
+    <div *ngIf="selected && loadingStats" class="notice">Cargando estadísticas…</div>
+
+    <div *ngIf="stats && !loadingStats">
+      <div class="kv">
+        <div><span>URL original</span><b>{{ stats.originalUrl }}</b></div>
+        <div><span>URL corta</span><b><a [href]="stats.shortUrl" target="_blank">{{ stats.shortUrl }}</a></b></div>
+        <div><span>Fecha de creación</span><b>{{ formatDate(stats.createdAt) }}</b></div>
+        <div><span>Total de accesos</span><b>{{ stats.totalAccesses }}</b></div>
+      </div>
+
+      <div class="section">
+        <h3>Países</h3>
+        <div class="countries" *ngIf="stats.countryCounts.length; else noCountries">
+          <div class="chip" *ngFor="let c of stats.countryCounts">
+            <span class="flag">{{ flagEmoji(c.country) }}</span>
+            <span class="name">{{ c.country }}</span>
+            <span class="count">{{ c.count }}</span>
+          </div>
+        </div>
+        <ng-template #noCountries>
+          <div class="notice">No hay países registrados todavía.</div>
+        </ng-template>
+      </div>
+
+      <div class="section">
+        <h3>Frecuencia por día</h3>
+
+        <div class="chart" *ngIf="stats.dailyFrequency.length; else noDaily">
+          <div class="barRow" *ngFor="let d of stats.dailyFrequency">
+            <div class="date">{{ d.date }}</div>
+            <div class="barWrap">
+              <div class="bar" [style.width.%]="(d.count / maxDailyCount()) * 100"></div>
+            </div>
+            <div class="n">{{ d.count }}</div>
+          </div>
+        </div>
+
+        <ng-template #noDaily>
+          <div class="notice">No hay accesos aún.</div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
