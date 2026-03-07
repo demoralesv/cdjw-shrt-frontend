@@ -1,3 +1,5 @@
+// se inicia la app en el navegador
+// y se configuran servicios globales
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';

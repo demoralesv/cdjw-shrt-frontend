@@ -1,3 +1,4 @@
+// aqui es donde el usuario genera la URL corta
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +18,7 @@ export class GenUrl {
   result: UrlDoc | null = null;
 
   constructor(private urlService: UrlService, private cdr: ChangeDetectorRef) {}
-
+  // cuando el usuario presiona crear
   create() {
     this.error = '';
     this.result = null;
@@ -31,8 +32,10 @@ export class GenUrl {
 
     this.loading = true;
     this.cdr.detectChanges();
-
+    
+    // se llama al backend
     this.urlService.create(value).subscribe({
+      // petición funciona
       next: (doc: UrlDoc) => { 
 	this.result = doc; 
 	this.loading = false; 

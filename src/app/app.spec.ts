@@ -1,3 +1,4 @@
+//tests generados por Angular
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 

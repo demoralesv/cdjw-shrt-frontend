@@ -1,3 +1,4 @@
+// la pantalla de estadísticas de cada URL
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UrlService, UrlDoc, UrlStats } from '../../services/url';
@@ -22,8 +23,9 @@ export class ViewStats {
   chart: any;
 
   constructor(private urlService: UrlService, private cdr: ChangeDetectorRef) {}
-
+  // cargar la lista de URLs
   ngOnInit() {
+    // el get
     this.loadList();
   }
 
@@ -34,7 +36,7 @@ export class ViewStats {
 
     this.urlService.list().subscribe({
       next: (items) => {
-        // por si acaso, orden alfabético en frontend también
+        // orden alfabético de las URLs
         this.urls = (items || []).slice().sort((a, b) =>
           (a.originalUrl || '').localeCompare(b.originalUrl || '')
         );
@@ -48,7 +50,7 @@ export class ViewStats {
       },
     });
   }
-
+  // se quiere ver la info de una URL
   view(u: UrlDoc) {
     this.selected = u;
     this.stats = null;
@@ -295,7 +297,7 @@ export class ViewStats {
     };
     return map[countryName] || '🏳️';
   }
-
+  // crear el gráfico
   createChart(data: any[]) {
 
     const labels = data.map(d => d.date);

@@ -1,3 +1,4 @@
+// test de Angular
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ViewStats } from './view-stats';
